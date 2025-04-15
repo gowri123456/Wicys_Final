@@ -9,37 +9,43 @@ const ContactPage = () => {
   });
 
   const [status, setStatus] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle form submission
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     setStatus("Sending...");
 
+    console.log("Sending form data:", formData); // Debugging line
+
     try {
-      const response = await fetch("http://localhost:3001/contact", {
-
-
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL || "http://localhost:3001"}/contact`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
+      
 
       const result = await response.json();
-      
+
       if (response.ok) {
         setStatus("✅ Message sent successfully!");
         setFormData({ name: "", email: "", message: "" });
       } else {
-        setStatus(`❌ Error: ${result.message || "Failed to send message."}`);
+        setStatus(`❌ Error: ${result.error || "Failed to send message."}`);
       }
     } catch (error) {
       console.error("Error:", error);
-      setStatus("❌ Failed to send message. Check console for details.");
+      setStatus("❌ Failed to send message. Server not responding.");
+    } finally {
+      setIsLoading(false);
     }
   }, [formData]);
 
@@ -70,19 +76,11 @@ const ContactPage = () => {
           onChange={handleChange}
           required
         />
-        <button type="submit" disabled={status === "Sending..."}>Send</button>
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? "Sending..." : "Send"}
+        </button>
       </form>
       {status && <p>{status}</p>}
-
-      <div className="social-links">
-        <a href="https://instagram.com/YOUR_INSTAGRAM" target="_blank" rel="noopener noreferrer">
-          Instagram
-        </a>
-        <a href="https://linkedin.com/in/YOUR_LINKEDIN" target="_blank" rel="noopener noreferrer">
-          LinkedIn
-        </a>
-        <p>Email: sluwicys@gmail.com</p>
-      </div>
     </div>
   );
 };
